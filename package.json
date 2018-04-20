@@ -1,0 +1,17 @@
+{
+  "name": "sse-node-angular",
+  "version": "1.0.0",
+  "description": "AngularJS + Sending Server-Sent Events events into an AngularJS application.",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "Manish Gupta",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2"
+  }
+}

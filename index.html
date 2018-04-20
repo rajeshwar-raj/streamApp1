@@ -1,0 +1,158 @@
+<html>
+  <head>
+    <title>Angular.js + SSE Example</title>
+    <script src="http://code.angularjs.org/1.0.7/angular.min.js"></script>
+  </head>
+  <body>
+    <div ng-app="calledBackJSON" ng-controller="JsonCtrl">
+      <!-- <button ng-click="jsonCall()">First Button</button>
+      <button ng-click="secondJsonCall()">Second Button</button> -->
+      <button ng-click="firstSSECall()">First Button</button>
+      <button ng-click="secondSSECall()">Second Button</button>
+      <button ng-click="thirdSSECall()">Third Button</button>
+      <ul>
+        <li ng-repeat="el3 in response">{{ el3.name }}</li>
+      </ul>
+      <ul>
+        <li>id: {{ response1.id }}</li>
+        <li>UserId: {{ response1.userId }}</li>
+        <li>Body: {{ response1.body }}</li>
+        <li>Title: {{ response1.title }}</li>
+      </ul>
+    </div>
+    <div ng-app="firstModule" ng-controller="FirstCtrl">
+      <ul>
+        <li ng-repeat="el1 in firstEle">{{ el1.value }}</li>
+      </ul>
+    </div>
+    <div ng-app="secondModule" ng-controller="SecondCtrl">
+      <ul>
+        <li ng-repeat="el2 in secondEle">{{ el2.value }}</li>
+      </ul>
+    </div>
+  </body>
+  <script>
+    angular.module('firstModule', []).factory('sse1', function($rootScope) {
+      var sse1 = new EventSource('/streaming');
+      return {
+        addEventListener: function(eventName, callback) {
+          sse1.addEventListener(eventName, function() {
+            var args = arguments;
+            $rootScope.$apply(function () {
+              callback.apply(sse1, args);
+            });
+          });
+        }
+      };
+    });
+    function FirstCtrl($scope, sse1) {
+      $scope.foos = [];
+      sse1.addEventListener('message', function (e) {
+        $scope.firstEle.push({value: e.data});
+      });
+      
+    }
+    
+    angular.module('secondModule', []).factory('sse2', function($rootScope) {
+      var sse2 = new EventSource('/updates');
+      return {
+        addEventListener: function(eventName, callback) {
+          sse2.addEventListener(eventName, function() {
+            var args = arguments;
+            $rootScope.$apply(function () {
+              callback.apply(sse2, args);
+            });
+          });
+        }
+      };
+    });
+    function SecondCtrl($scope, sse2) {
+      $scope.bars = [];
+      sse2.addEventListener('message', function (e) {
+        $scope.secondEle.push({value: e.data});
+      });
+    }
+
+    angular.module('calledBackJSON', []).factory('sse2', function($rootScope) {
+    });
+    function JsonCtrl($scope, sse2, $http) {
+      var sse;
+      var resData;
+      $scope.bars = [];
+      $scope.jsonCall = function(){
+        
+        $http({
+                method: 'GET',
+                url: 'http://localhost:3000/employees',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':'application/json',
+                },
+              }).then(function successCallback(response) {
+                  console.log(response);
+                  resData = response.data
+                  $scope.response = resData;
+                }, function errorCallback(response) {
+                  console.log("Unable to perform get request");
+                });        
+      }
+
+      $scope.secondJsonCall = function(){
+        $http({
+                method: 'GET',
+                url: 'https://jsonplaceholder.typicode.com/posts/1',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':'application/json',
+                },
+              }).then(function successCallback(response) {
+                  console.log(response);
+                  $scope.response1 = response.data;
+                }, function errorCallback(response) {
+                  console.log("Unable to perform get request");
+                });
+      }
+
+      $scope.firstSSECall = function($scope, $rootScope){
+        var sse = new EventSource('/updates');
+        sse.addEventListener('message', function (e) {
+          console.log({value: e.data});
+        });
+      }
+      $scope.secondSSECall = function($scope, $rootScope){
+        var sse1 = new EventSource('/streaming');
+        var sse2 = new EventSource('/updates');
+        sse1.addEventListener('message', function (e) {
+          console.log({value: e.data});
+        });
+        sse2.addEventListener('message', function (e) {
+          console.log({value: e.data});
+        });
+      }
+
+      $scope.thirdSSECall = function($scope, $rootScope){
+        $http({
+          method: 'GET',
+          url: 'http://localhost:3000/employees',
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept':'application/json',
+          },
+        }).then(function successCallback(response) {
+              resData = response.data
+              $scope.response = resData;
+          }, function errorCallback(response) {
+            console.log("Unable to perform get request");
+          });
+
+        
+        sse = new EventSource('/updatetwoevent');
+        sse.addEventListener('message', function (e) {
+            console.log({value: e.data});
+        });
+        
+      }
+  }
+  </script>
+</html>
+
